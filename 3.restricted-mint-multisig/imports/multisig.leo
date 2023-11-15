@@ -5,6 +5,13 @@ program multisig.aleo {
     mapping required_signatures: bool => u64;
     mapping proposals: Proposal => u64;
     mapping signers: address => bool;
+    mapping propmapping : Proposal_signer => bool;
+
+    struct Proposal_signer {
+        proposal: Proposal,
+        signer_address: address
+
+    }
 
     struct Proposal {
         program_address: address,
@@ -41,6 +48,13 @@ program multisig.aleo {
 
     finalize sign(caller: address, proposal: Proposal) {
         assert(Mapping::get(signers, caller));
+        
+        let propA: Proposal_signer = Proposal_signer {
+            proposal: proposal,
+            signer_address: caller
+        };
+        assert(!Mapping::get(propmapping, propA));
+        Mapping::set(propmapping, propA, true);
         let signatures: u64 = Mapping::get_or_use(proposals, proposal, 0u64);
         Mapping::set(proposals, proposal, signatures + 1u64);
     }
@@ -74,5 +88,5 @@ program multisig.aleo {
         Mapping::set(required_signatures, true, new_required_signatures);
     }
 
-    transition burn(ticket_: ticket) {}
+    transition burn(ticket_: ticket) {}
 }
